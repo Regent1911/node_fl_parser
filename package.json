@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "@2captcha/captcha-solver": "^1.0.4",
+    "2captcha-ts": "^2.3.2",
+    "mysql2": "^3.7.1",
+    "puppeteer": "^22.14.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "name": "zoon-parser",
+  "version": "0.6.12",
+  "description": "parser zoon.ru",
+  "main": "index.js vac 1",
+  "scripts": {
+    "test": "test",
+    "start": "node index.js vac 1"
+  },
+  "keywords": [
+    "parser",
+    "puppeteer"
+  ],
+  "author": "regent1911",
+  "license": "ISC"
+}
