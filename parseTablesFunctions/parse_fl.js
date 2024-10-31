@@ -1,24 +1,18 @@
-const internal = require('stream');
 const queryDB = require('../tools/queryDB');
-
 const fs = require('fs');
 
 async function parseAndSaveToDB(scrapedData)
 {
 	let pickedData = scrapedData;
-	let count = 0;
 	let currentResumeId = Number;
 
 	for (const [url_key, data] of Object.entries(pickedData))
 	{
-		try
+		/*try
 		{
 			fs.writeFileSync(`./parsed_data/freelancers/parsed_data_freelsncer_${Date.now()}.json`, JSON.stringify(data), 'utf8', function (err) { if (err) { return console.log(err); } });
 			count++
-		} catch (err)
-		{
-			console.error("something wrong! : ", err);
-		}
+		} catch (err) { console.error("something wrong! : ", err); }*/
 
 		let isDuplicate = Boolean;
 		let selectQuery = `SELECT \`id_user\` FROM  \`ps_fl_freelancers\` WHERE userLink ='${url_key}'`;
@@ -54,11 +48,6 @@ async function parseAndSaveToDB(scrapedData)
 
 	};
 
-	if (pickedData !== undefined)
-	{
-		//console.info(pickedData)
-	}
-
-}
+};
 
 module.exports = { parseAndSaveToDB }

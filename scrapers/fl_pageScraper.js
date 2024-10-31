@@ -15,14 +15,8 @@ const scraperObject = {
 		await freelancerPage.setRequestInterception(true);
 		await freelancerPage.on('request', (req) =>
 		{
-			if (req.resourceType() === 'image')//если image но не капча
-			{
-				req.abort();
-			}
-			else
-			{
-				req.continue();
-			}
+			if (req.resourceType() === 'image') { req.abort(); }
+			else { req.continue(); }
 		});
 
 		console.log(`\nПереход по "${_url}"...\n`);
@@ -30,8 +24,8 @@ const scraperObject = {
 		if (currentUrl !== undefined)
 		{
 			await freelancerPage.goto(currentUrl, {
-				timeout: 35000,
-				waitUntil: 'domcontentloaded'//or 'load'
+				timeout: 120000,
+				waitUntil: ['domcontentloaded'] //or 'load'
 			});
 		};
 
@@ -43,9 +37,9 @@ const scraperObject = {
 
 			if (await freelancerPage.$(showContactsButtonSelector) !== null)//если на странице есть элемент возвращающий по клику телефон
 			{
-				await freelancerPage.click(showContactsButtonSelector).then(result => console.log(result)).then(async res =>
+				await freelancerPage.click(showContactsButtonSelector).then(async () =>
 				{
-					await sleep(getRandomArbitrarySec(4, 7)).then((res) => { console.info(`Выждали паузу(fl_pageScraper)`) });
+					await sleep(getRandomArbitrarySec(6, 10)).then((res) => { console.info(`Выждали паузу(fl_pageScraper)`) });
 
 					currentFreelancer.userName = await freelancerPage.evaluate(() =>
 					{
@@ -101,8 +95,6 @@ const scraperObject = {
 
 		let dataFromPage = await scrapeCurrentPage();
 		dataFromPage['pageState'] = currentPageStatus;
-		console.log(dataFromPage);
-
 		return dataFromPage;
 	}
 }

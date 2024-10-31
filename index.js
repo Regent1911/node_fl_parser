@@ -1,8 +1,7 @@
 const flScraperController = require('./controllers/fl_pageController');
-
 const browserObject = require('./browser');
 const browserInstance = browserObject.startBrowser();
-const parseCount = 40;
+const parseCount = 40;//вроде их столько на странице....
 
 async function startParse(parseCount = 10)
 {
@@ -17,7 +16,7 @@ async function startParseFreelancers(flCount)
 {
 	return new Promise(async (resolve, reject) =>
 	{
-		const resumeUrl = 'https://www.fl.ru/freelancers/';
+		const resumeUrl = 'https://www.fl.ru/freelancers/page-4/';
 
 		const parseCount = flCount;
 		console.log("flCount", parseCount);
@@ -25,11 +24,9 @@ async function startParseFreelancers(flCount)
 		await flScraperController(browserInstance, resumeUrl, parseCount).then(result =>
 		{
 			resolve(result);
-			console.log(result);
 
 		}).catch(error => { reject(new Error(error)) })
-
-	})
+	});
 };
 
 startParse(parseCount).then(() => (process.exit(1)));

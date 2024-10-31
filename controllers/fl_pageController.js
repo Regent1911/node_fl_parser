@@ -1,4 +1,4 @@
-const parseFl = require('./../parseTablesFunctions/parse_fl');
+
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 const getRandomArbitrarySec = require('../tools/getRandomArbitrarySec');
 const scrapeWithCicle = require('./scrapeWithCicle');
@@ -10,41 +10,33 @@ const paginationNextPageSelector = "#PrevLink";
 
 async function scrapeAll(browserInstance, URL, flCount)
 {
-	let browser;
-	console.log("\nscrapeAll flCount:", flCount);
 	try
 	{
-		browser = await browserInstance;
-		let scrapedData = {};//объект со спарсеными данными
+		let browser = await browserInstance;
 
 		const flListPage = await browser.newPage().then(console.log("Вкладака открыта..."));//Открываем новую вкладку
 		await flListPage.goto(URL, { waitUntil: ['domcontentloaded'] }).then(() => console.log('Страница со списком фрилансеров и пагинацией открыта...'));//Страница со списком фрилансеров и пагинацией
 		await sleep(getRandomArbitrarySec(4, 6));
 
-		await scrapeWithCicle(flListPage, flCount, db_table, scrapedData, browser);//Парсим указанное количество фрилансеров
+		await scrapeWithCicle(flListPage, flCount, db_table, browser);//Парсим указанное количество фрилансеров
 		await sleep(getRandomArbitrarySec(4, 6));//отдыхаем 4-6 секнд
-		await parseFl.parseAndSaveToDB(scrapedData, URL).then(async result => { console.log(result) }).catch(err => console.error(err));//записываем результаты
-
 		//browser.close();
 
-		if (await flListPage.$(paginationNextPageSelector) !== null)//если на странице есть элемент возвращающий по клику телефон
+		if (await flListPage.$(paginationNextPageSelector) !== null)
 		{
-			await flListPage.click(paginationNextPageSelector).then(result => console.log(result)).then(async res =>
+
+			while ((await flListPage.$(paginationNextPageSelector) !== null))
 			{
-				while ((await flListPage.$(paginationNextPageSelector) !== null))
-				{
-					console.log("next page...");
-					await sleep(getRandomArbitrarySec(4, 6));
+				console.log("next page...");
+				await flListPage.goto(await flListPage.$eval(paginationNextPageSelector, (element) => element.href));
+				await sleep(getRandomArbitrarySec(4, 6));
 
-					await scrapeWithCicle(flListPage, flCount, db_table, scrapedData, browser);//Парсим указанное количество фрилансеров
-					await sleep(getRandomArbitrarySec(4, 6));//отдыхаем 4-6 секнд
-					await parseFl.parseAndSaveToDB(scrapedData, URL).then(async result => { console.log(result) }).catch(err => console.error(err));//записываем результаты
-				}
+				await scrapeWithCicle(flListPage, flCount, db_table, browser);//Парсим указанное количество фрилансеров
+				await sleep(getRandomArbitrarySec(4, 6));//отдыхаем 4-6 секнд
+			};
 
-			})
 		}
 
-		return scrapedData;
 	}
 	catch (err)
 	{
