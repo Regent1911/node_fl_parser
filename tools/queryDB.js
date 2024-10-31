@@ -5,15 +5,7 @@ function queryDB(query, params = {})
 {
 	return new Promise((resolve, reject) =>
 	{
-		const connection = mysql.createConnection(config);
-
-		connection.connect(err =>
-		{
-			if (err)
-			{
-				reject(err); connection.end();
-				return;
-			}
+		const connection = mysql.createPool(config);
 
 			const sql = query;
 			const values = params;
@@ -28,7 +20,6 @@ function queryDB(query, params = {})
 
 				resolve(results); connection.end();
 			});
-		});
 	});
 }
 

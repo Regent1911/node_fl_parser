@@ -1,10 +1,8 @@
 const config = {
 	host: 'vh386.timeweb.ru',
-	//user: 'cx14726_pooltest',
-	user: 'cx14726_pooltst',
-	//database: 'cx14726_pooltest',
-	database: 'cx14726_pooltst',
-	password: 'media1'
+	user: 'cx14726_nodejs',
+	database: 'cx14726_nodejs',
+	password: 'nRxge7jckk9B8dW',
 }
 
 module.exports = config;

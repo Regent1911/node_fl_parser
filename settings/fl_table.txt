@@ -1,0 +1,11 @@
+ps_fl_freelancers
+
+	1 	id_user (��ࢨ��)		int(11)
+	2 	userName				varchar(50)
+	3 	contact_websites		text
+	4 	contact_email			varchar(50)
+	5 	contact_vk				varchar(50)
+	6 	contact_phone			varchar(30)
+	7 	contact_telegram		varchar(50)
+	8 	user_location			varchar(150)
+	9 	userLink ������			varchar(200)

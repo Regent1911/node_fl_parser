@@ -1,54 +1,56 @@
-const { _connectToCdpBrowser } = require('puppeteer');
 const flPageScraper = require('../scrapers/fl_pageScraper');//
 const parseFl = require('./../parseTablesFunctions/parse_fl');
 const queryDB = require('../tools/queryDB');
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 const getRandomArbitrarySec = require('../tools/getRandomArbitrarySec');
 
+
+console.log("fl_pageController");
+
+const db_table = "ps_fl_freelancers";
+
 async function scrapeAll(browserInstance, URL, flCount)
 {
 	let browser;
-	console.log(URL);
 	console.log("scrapeAll flCount", flCount);
 	try
 	{
 		browser = await browserInstance;
 		let scrapedData = {};//объект со спарсеными данными
 
-		const flListPage = await browser.newPage();//Открываем новую вкладку
-		await flListPage.goto(URL);//Страница со списком резюме и пагинацией
+		const flListPage = await browser.newPage().then(console.log("Вкладака открыта..."));//Открываем новую вкладку
+		await flListPage.goto(URL, { waitUntil: ['domcontentloaded'] }).then(() => console.log('Страница со списком фрилансеров и пагинацией открыта...'));//Страница со списком фрилансеров и пагинацией
 		await sleep(getRandomArbitrarySec(4, 6));
-
-		const isCaptchaPresent = await flListPage.evaluate(() =>
-		{
-			return document.querySelector('form[name="check_user"]') !== null;
-		});
-		if (isCaptchaPresent)
-		{
-			flListPage.screenshot({ path: 'screenshot_captcha.png' });
-		}
 
 		async function scrapeWithCicle(flListPage, flCount)
 		{
-			let flLinksElements = await flListPage.$$('.prof a[href^="/res"][target]');//Берём все элементы со ссылками на резюме
+			const FL_SELECTORS = {
+				userCardLink: '[data-id="qa-content-tr-td-user"]>[data-ga-event]',
+			}
+
+			let flLinksElements = await flListPage.$$(FL_SELECTORS.userCardLink)/*.then(elements => console.log(elements))*/;//Берём все элементы со ссылками на резюме
 			let count = flCount;
+
 			for (const linkElement of flLinksElements)
 			{
 				if (count <= 0) return
-				const resume_link = await flListPage.evaluate(linkElement => linkElement.href, linkElement);//забираем ссылку из аттрибута href
+
+				const user_link = await flListPage.evaluate(linkElement => linkElement.href, linkElement);//забираем ссылку из аттрибута href
 				let isDuplicate = Boolean;
-				let selectQuery = `SELECT \`id_resume\` FROM  \`ps_parsjl_resume\` WHERE resume_url ='${resume_link}'`;
+				let selectQuery = `SELECT \`id_user\` FROM  \`${db_table}\` WHERE userLink  ='${user_link}'`;
 				await queryDB(selectQuery)
 					.then(result =>
 					{
 						if (result.length)
-						{ console.log(resume_link, ": is duplicate resume"); isDuplicate = true; } else { isDuplicate = false; }
+						{ console.log(user_link, ": is duplicate freelancer"); isDuplicate = true; } else { isDuplicate = false; }
 					});
 
 				if (isDuplicate == true) { continue };//если resume с url url_key уже записано.
-				scrapedData[resume_link] = await flPageScraper.scraper(browser, resume_link);//запускаем скрапер по этой ссылке
+
+				scrapedData[user_link] = await flPageScraper.scraper(browser, user_link);//запускаем скрапер по этой ссылке
 				count--;
 			}
+
 			count = 0;
 		};
 

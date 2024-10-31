@@ -22,10 +22,10 @@ async function startBrowser()
 		browser = await puppeteerChrome.launch({
 			executablePath: 'C:\\Program Files\\Google\\Chrome Dev\\Application\\chrome.exe',
 			userDataDir: process.env.LOCALAPPDATA + "\\Google\\Chrome Dev\\User Data\\",
-			headless: "new",//false or true or 'new'
-			/*devtools: true,*/
+			headless: false,//false or true or 'new'
+			devtools: false,
 			'ignoreHTTPSErrors': true,
-			args: ['--no-sandbox', '--profile-directory=Profile 1'],
+			args: ['--no-sandbox', '--profile-directory=Profile 2'],
 			//args: [`--window-size=1920,1080--user-data-dir=C:\\Users\\DeusExMachine\\AppData\\Local\\Google\\Chrome Dev\\User Data\\Default`],
 		});
 
