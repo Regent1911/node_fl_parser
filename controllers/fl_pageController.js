@@ -1,18 +1,17 @@
-const flPageScraper = require('../scrapers/fl_pageScraper');//
 const parseFl = require('./../parseTablesFunctions/parse_fl');
-const queryDB = require('../tools/queryDB');
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 const getRandomArbitrarySec = require('../tools/getRandomArbitrarySec');
-
+const scrapeWithCicle = require('./scrapeWithCicle');
 
 console.log("fl_pageController");
 
 const db_table = "ps_fl_freelancers";
+const paginationNextPageSelector = "#PrevLink";
 
 async function scrapeAll(browserInstance, URL, flCount)
 {
 	let browser;
-	console.log("scrapeAll flCount", flCount);
+	console.log("\nscrapeAll flCount:", flCount);
 	try
 	{
 		browser = await browserInstance;
@@ -22,43 +21,29 @@ async function scrapeAll(browserInstance, URL, flCount)
 		await flListPage.goto(URL, { waitUntil: ['domcontentloaded'] }).then(() => console.log('Страница со списком фрилансеров и пагинацией открыта...'));//Страница со списком фрилансеров и пагинацией
 		await sleep(getRandomArbitrarySec(4, 6));
 
-		async function scrapeWithCicle(flListPage, flCount)
-		{
-			const FL_SELECTORS = {
-				userCardLink: '[data-id="qa-content-tr-td-user"]>[data-ga-event]',
-			}
-
-			let flLinksElements = await flListPage.$$(FL_SELECTORS.userCardLink)/*.then(elements => console.log(elements))*/;//Берём все элементы со ссылками на резюме
-			let count = flCount;
-
-			for (const linkElement of flLinksElements)
-			{
-				if (count <= 0) return
-
-				const user_link = await flListPage.evaluate(linkElement => linkElement.href, linkElement);//забираем ссылку из аттрибута href
-				let isDuplicate = Boolean;
-				let selectQuery = `SELECT \`id_user\` FROM  \`${db_table}\` WHERE userLink  ='${user_link}'`;
-				await queryDB(selectQuery)
-					.then(result =>
-					{
-						if (result.length)
-						{ console.log(user_link, ": is duplicate freelancer"); isDuplicate = true; } else { isDuplicate = false; }
-					});
-
-				if (isDuplicate == true) { continue };//если resume с url url_key уже записано.
-
-				scrapedData[user_link] = await flPageScraper.scraper(browser, user_link);//запускаем скрапер по этой ссылке
-				count--;
-			}
-
-			count = 0;
-		};
-
-		await scrapeWithCicle(flListPage, flCount);
-		await sleep(getRandomArbitrarySec(4, 6));
-		await parseFl.parseAndSaveToDB(scrapedData, URL).then(async result => { console.log(result) }).catch(err => console.error(err));
+		await scrapeWithCicle(flListPage, flCount, db_table, scrapedData, browser);//Парсим указанное количество фрилансеров
+		await sleep(getRandomArbitrarySec(4, 6));//отдыхаем 4-6 секнд
+		await parseFl.parseAndSaveToDB(scrapedData, URL).then(async result => { console.log(result) }).catch(err => console.error(err));//записываем результаты
 
 		//browser.close();
+
+		if (await flListPage.$(paginationNextPageSelector) !== null)//если на странице есть элемент возвращающий по клику телефон
+		{
+			await flListPage.click(paginationNextPageSelector).then(result => console.log(result)).then(async res =>
+			{
+				while ((await flListPage.$(paginationNextPageSelector) !== null))
+				{
+					console.log("next page...");
+					await sleep(getRandomArbitrarySec(4, 6));
+
+					await scrapeWithCicle(flListPage, flCount, db_table, scrapedData, browser);//Парсим указанное количество фрилансеров
+					await sleep(getRandomArbitrarySec(4, 6));//отдыхаем 4-6 секнд
+					await parseFl.parseAndSaveToDB(scrapedData, URL).then(async result => { console.log(result) }).catch(err => console.error(err));//записываем результаты
+				}
+
+			})
+		}
+
 		return scrapedData;
 	}
 	catch (err)

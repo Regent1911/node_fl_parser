@@ -2,7 +2,7 @@ const flScraperController = require('./controllers/fl_pageController');
 
 const browserObject = require('./browser');
 const browserInstance = browserObject.startBrowser();
-const parseCount = 2;
+const parseCount = 40;
 
 async function startParse(parseCount = 10)
 {
@@ -15,7 +15,6 @@ async function startParse(parseCount = 10)
 
 async function startParseFreelancers(flCount)
 {
-
 	return new Promise(async (resolve, reject) =>
 	{
 		const resumeUrl = 'https://www.fl.ru/freelancers/';
